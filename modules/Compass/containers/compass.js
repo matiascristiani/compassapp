@@ -1,30 +1,113 @@
 import React, {Component} from 'react';
-import { Image, View, Text, Dimensions, StyleSheet } from 'react-native';
+import { Platform, Image, View, Text, Dimensions, StyleSheet } from 'react-native';
 import { Grid, Col, Row } from 'react-native-easy-grid';
 import { Magnetometer } from 'expo-sensors';
 import { ScreenOrientation } from 'expo';
 
+import * as Location from 'expo-location';
+import { AsyncStorage } from 'react-native';
+import * as Permissions from 'expo-permissions';
+
+
 const {height, width} = Dimensions.get('window');
+
+const STORAGE_KEY = 'points';
+
+const demoHome = true;
 
 export default class Compass extends Component {
 
   constructor() {
     super();
     this.state = {
+      arrayPoints: [],
+
+      showError: false,
       magnetometer: '0',
+      
+      lastLatitude: 0,
+      lastLongitude: 0,
+
+      presentLatitude: 0,
+      presentLongitude: 0,
+
+      timestamp: null
+      // location: { coords: { latitude: 0, longitude: 0 } },
     };
   }
 
   componentWillMount() {
-    ScreenOrientation.allow(ScreenOrientation.Orientation.PORTRAIT_UP);
-  };
+     if (Platform.OS === 'android' && !Constants.isDevice) {
+      this.setState({
+        showError: true,
+      });
+    } else {
+      // block orientation screen
+      ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
+      
+      // get location
+      this._getLocationAsync();
 
+      //dataDemo
+      // if (demoHome) {
+      //   console.log("demo home");
+
+      //   let position = { 
+      //     direction: 'S',
+      //     datetime: new Date().getTime(),
+      //     lat: -32.4124124,
+      //     long: 50.00124010
+      //   }
+      // }
+
+     AsyncStorage.getItem(STORAGE_KEY)
+      .then(req => JSON.parse(req))
+      .then(array => { 
+
+        if (array && array.length > 0) {
+           this.setState({
+              arrayPoints: array,
+            });
+        }
+
+      })
+      .catch(error => { 
+        console.log('error-get-last-data!')
+      });
+    
+    }
+  };
+  _loadPoints = async () => {
+    return await AsyncStorage.getItem(STORAGE_KEY);
+  };
   componentDidMount() {
     this._toggle();
   };
 
   componentWillUnmount() {
     this._unsubscribe();
+  };
+
+  _getLocationAsync = async () => {
+    // Permissions 
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    
+    if (status !== 'granted') {
+      this.setState({
+        errorMessage: 'Permission to access location was denied',
+      });
+    }
+    
+    //Get location and log's
+    let location = await Location.getCurrentPositionAsync({});
+    
+    console.log("Show me Location: ");
+    console.log(location);
+
+    this.setState({ timestamp: location.timestamp });
+    this.setState({ presentLatitude: location.coords.latitude });
+    this.setState({ presentLongitude: location.coords.longitude });
+    
   };
 
   _toggle = () => {
@@ -36,14 +119,64 @@ export default class Compass extends Component {
   };
 
   _subscribe = async () => {
+    // Direction should be calculated by comparing current and last latitude and longitude.
     this._subscription = Magnetometer.addListener((data) => {
-      this.setState({magnetometer: this._angle(data)});
+      if (
+        this.state.lastLatitude != this.state.presentLatitude &&
+        this.state.lastLongitude != this.state.presentLongitude) {
+        
+        this.setState({magnetometer: this._angle(data)});
+        this._savePosition()
+      }
     });
+      
   };
 
   _unsubscribe = () => {
     this._subscription && this._subscription.remove();
     this._subscription = null;
+  };
+  
+  _savePosition = () => {
+    let arrayPoints = this.state.arrayPoints;
+
+    let position = { 
+      direction: this._direction(this.state.magnetometer),
+      datetime: this.state.timestamp,
+      lat:  this.state.presentLatitude,
+      long: this.state.presentLongitude
+    }
+
+    console.log("save")
+    console.log(arrayPoints);
+    console.log(arrayPoints.length);
+
+    if (arrayPoints && arrayPoints.length <=48) {
+        arrayPoints.push(position);
+    }else{
+        let sortedPoints = arrayPoints.sort((a, b) => b.datetime - a.datetime)
+            sortedPoints[0] = position;
+            arrayPoints = sortedPoints;
+    }
+
+    console.dir(arrayPoints);
+
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(arrayPoints))
+      .then(data => {
+        console.log('success!')
+        this.setState({
+              arrayPoints: arrayPoints,
+        });
+      })
+      .catch(error => {
+        console.log('error!')
+      });
+
+
+    //update dataLast
+    this.setState({lastLatitude: this.state.presentLatitude });
+    this.setState({lastLongitude: this.state.presentLongitude });
+
   };
 
   _angle = (magnetometer) => {
@@ -62,6 +195,7 @@ export default class Compass extends Component {
   };
 
   _direction = (degree) => {
+    // Direction: N, S, W, E, NE, NW, SE, SW.
     if (degree >= 22.5 && degree < 67.5) {
       return 'NE';
     }
@@ -94,15 +228,28 @@ export default class Compass extends Component {
   };
 
   render() {
-
     return (
 
       <Grid style={styles.gridContainer}>
         
+        { this.state.showError ? (
+          <Row size={5}>
+            <Col>
+              <Text style={styles.showError}>Imposible access to location was denied</Text>
+            </Col>
+          </Row>
+        ) : null}
+        
         <Row style={{alignItems: 'center'}} size={15}>
+          <Col style={{alignItems: 'center'}}>
+              <Text style={styles.coords}>{this.state.presentLatitude ? this.state.presentLatitude : ''}</Text>
+          </Col>
           <Col style={{alignItems: 'center'}}>
             <Text style={styles.titleCompass}>{this._direction(this._degree(this.state.magnetometer))}
             </Text>
+          </Col>
+          <Col style={{alignItems: 'center'}}>
+            <Text style={styles.coords}>{this.state.presentLongitude ? this.state.presentLongitude : ''}</Text>
           </Col>
         </Row>
 
@@ -157,6 +304,17 @@ const styles = StyleSheet.create({
     fontSize: height / 26,
     fontWeight: 'bold',
     padding: 20
+  },
+  showError: {
+    backgroundColor: '#da0115',
+    color: '#fff',
+    fontWeight: 'bold',
+    padding: 5
+  },
+  coords:  {
+    color: '#fff',
+    fontSize: height / 26,
+    padding: 10
   }
 });
 

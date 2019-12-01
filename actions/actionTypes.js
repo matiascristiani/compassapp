@@ -1,0 +1,2 @@
+export const GET_ALL_POINTS = 'GET_ALL_POINTS';
+export const CREATE_NEW_POINT = 'CREATE_NEW_POINT';
