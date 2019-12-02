@@ -7,13 +7,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { Provider, connect } from 'react-redux';
 
 import AppNavigator from './navigation/AppNavigator';
-import dataReducers from './reducers/data.reducer';
 
-import { createStore } from 'redux'
+/* redux 30% implementation */
+
+// import dataReducers from './reducers/data.reducer';
+
+// import { createStore } from 'redux'
 
 // store redux
-const store = createStore(dataReducers)
-console.log(store.getState()) // data: []
+// const store = createStore(dataReducers)
+// console.log(store.getState()) // data: []
 
 export default function App(props) {
   const [isLoadingComplete, setLoadingComplete] = useState(false);
@@ -28,12 +31,13 @@ export default function App(props) {
     );
   } else {
     return (
-      <Provider store={store}>
+      // <Provider store={store}>
         <View style={styles.container}>
           {Platform.OS === 'ios' && <StatusBar barStyle="default" />}
           <AppNavigator />
         </View>
-      </Provider>
+      
+      // </Provider>
     );
   }
 }

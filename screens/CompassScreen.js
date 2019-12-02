@@ -1,6 +1,6 @@
-import React from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Compass from '../modules/Compass/containers/compass';
+import React from 'react';
 
 export default function CompassScreen() {
   return (

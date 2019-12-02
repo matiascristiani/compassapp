@@ -1,16 +1,13 @@
-import React, {Component} from 'react';
 import { Platform, Image, View, Text, Dimensions, StyleSheet } from 'react-native';
 import { Grid, Col, Row } from 'react-native-easy-grid';
-import { Magnetometer } from 'expo-sensors';
-import { ScreenOrientation } from 'expo';
-
-import * as Location from 'expo-location';
-import { AsyncStorage } from 'react-native';
 import * as Permissions from 'expo-permissions';
-
+import { Magnetometer } from 'expo-sensors';
+import { AsyncStorage } from 'react-native';
+import * as Location from 'expo-location';
+import { ScreenOrientation } from 'expo';
+import React, {Component} from 'react';
 
 const {height, width} = Dimensions.get('window');
-
 const STORAGE_KEY = 'points';
 
 export default class Compass extends Component {
