@@ -3,7 +3,7 @@ import { Platform, Alert, View, Text, TextInput, FlatList, StyleSheet, Touchable
 import { Grid, Col, Row } from 'react-native-easy-grid';
 
 // metodo-1-by-redux
-import {connect} from 'react-redux';
+// import {connect} from 'react-redux';
 
 // metodo-2-by-async-storage
 import { AsyncStorage } from 'react-native';
@@ -27,7 +27,7 @@ export default class List extends Component {
   };
   
   componentDidMount() {
-    this._fechItems();
+    // this._fechItems();
   };
 
   componentWillUnmount() {
@@ -35,12 +35,13 @@ export default class List extends Component {
   };
 
   _fechItems() {
+      /*Fetch  all points */
       AsyncStorage.getItem(STORAGE_KEY)
       .then(req => JSON.parse(req))
       .then(array => { 
 
         if (array && array.length > 0) {
-          console.log("success")
+          console.log("refresh-items")
           array.forEach((item)=>{
             let date = new Date(item.datetime);
             let minutes = (date.getMinutes()<10? '0':'') + date.getMinutes();
@@ -53,13 +54,14 @@ export default class List extends Component {
               showError: false,
           });
 
-          console.log(this.state.data);
+          // console.log(this.state.data);
         }
 
        }).catch(error => {  console.log('error@_fechItems') });
   }
   
   _onPress(item) {
+    /* Show Lat,Long */
     console.log("@OnPress")
     
     Alert.alert(
@@ -75,6 +77,7 @@ export default class List extends Component {
   }
 
   _FlatListHeader = () => {
+    /* Render header */
     return (         
         <Grid>
 
@@ -101,6 +104,7 @@ export default class List extends Component {
   }
 
   _FlatListItemSeparator = () => {
+    /* Render separator */
     return (
       <View
         style={{
@@ -113,7 +117,7 @@ export default class List extends Component {
   }
 
   _handleSearch = (textValue) => {
-   
+     /* Filter array */
       const newData = this.state.arrayholder.filter(item => {      
 
           const strData = item.direction.toLowerCase();   
@@ -126,6 +130,7 @@ export default class List extends Component {
   };
 
   render() {
+    this._fechItems();
     const {text} =  this.state.valueSearch;
     return (
     

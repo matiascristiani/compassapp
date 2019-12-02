@@ -51,6 +51,8 @@ export default function Home() {
   );
 }
 
+
+/* StyleSheet */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

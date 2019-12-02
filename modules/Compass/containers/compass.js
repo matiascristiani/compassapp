@@ -12,6 +12,8 @@ const STORAGE_KEY = 'points';
 
 export default class Compass extends Component {
 
+
+  /* Constructor */
   constructor() {
     super();
     this.state = {
@@ -27,45 +29,38 @@ export default class Compass extends Component {
       presentLongitude: 0,
 
       timestamp: null
-      // location: { coords: { latitude: 0, longitude: 0 } },
     };
   }
 
   componentWillMount() {
-     if (Platform.OS === 'android' && !Constants.isDevice) {
+
+
+    /* Verify device  */
+    if (Platform.OS === 'android' && !Constants.isDevice) {
       this.setState({
         showError: true,
       });
+    
     } else {
       // block orientation screen
       ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
       
-      // get location
+      // get one location
       // this._getLocationAsync();
       
-      // watch me location
+      // watch me location 5' and 1m.
       this._watchLocation();
       
-     AsyncStorage.getItem(STORAGE_KEY)
-      .then(req => JSON.parse(req))
-      .then(array => { 
-
+     /* Get array of points, if exist */
+     AsyncStorage.getItem(STORAGE_KEY).then(req => JSON.parse(req)).then(array => { 
         if (array && array.length > 0) {
            this.setState({
               arrayPoints: array,
             });
         }
-
-      })
-      .catch(error => { 
-        console.log('error-get-last-data!')
-      });
-    
+      }).catch(error => {  console.log('@error-get') });
     }
-  };
 
-  _loadPoints = async () => {
-    return await AsyncStorage.getItem(STORAGE_KEY);
   };
 
   componentDidMount() {
@@ -79,13 +74,22 @@ export default class Compass extends Component {
   _watchLocation(){
     console.log("@_watchLocation");
     
+    let { status } = Permissions.askAsync(Permissions.LOCATION);
+    
+    if (status !== 'granted') {
+      this.setState({
+        errorMessage: 'Permission to access location was denied',
+      });
+    }
+
     var _this=this;
     
     Location.watchPositionAsync({
-      enableHighAccuracy:true,
+      enableHighAccuracy: true,
+      distanceInterval: 10,
       timeInterval: 5000
     }, location => {
-            console.log("Watch Location 5seg");
+            console.log("Watch Location 5seg and mts");
             console.log(location);
 
             this.setState({ timestamp: location.timestamp });
@@ -102,7 +106,7 @@ export default class Compass extends Component {
   }
 
   _getLocationAsync = async () => {
-    // Permissions 
+    // Old functions localization.  
     let { status } = await Permissions.askAsync(Permissions.LOCATION);
     
     if (status !== 'granted') {
@@ -111,7 +115,7 @@ export default class Compass extends Component {
       });
     }
     
-    //Get location and log's
+    //Get location and logs
     let location = await Location.getCurrentPositionAsync({});
     
     console.log("Show me Location: ");
@@ -145,6 +149,7 @@ export default class Compass extends Component {
   };
   
   _savePosition = () => {
+    // Save position on me array and set asyncStorage
     let arrayPoints = this.state.arrayPoints;
 
     let position = { 
@@ -159,28 +164,32 @@ export default class Compass extends Component {
     console.log(arrayPoints.length);
 
     if (arrayPoints && arrayPoints.length <=48) {
+        //push item
+        console.log('Push new item');
         arrayPoints.push(position);
     }else{
-        let sortedPoints = arrayPoints.sort((a, b) => b.datetime - a.datetime)
-            sortedPoints[0] = position;
-            arrayPoints = sortedPoints;
+        console.log('max 50 items');
+        // replace first position, order by datetime 
+        let sortedPoints = arrayPoints.sort((a, b) => a.datetime - b.datetime)
+        
+        console.log('replace point');
+        console.log(sortedPoints[0]);
+
+        sortedPoints[0] = position;
+        arrayPoints = sortedPoints;
     }
 
-    console.dir(arrayPoints);
+    // console.dir(arrayPoints);
 
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(arrayPoints))
-      .then(data => {
+    //set item
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(arrayPoints)).then(data => {
         console.log('success!')
         this.setState({
               arrayPoints: arrayPoints,
         });
-      })
-      .catch(error => {
-        console.log('error!')
-      });
+    }).catch(error => { console.log('error!') });
 
-
-    //update dataLast
+    //update positionLast
     this.setState({lastLatitude: this.state.presentLatitude });
     this.setState({lastLongitude: this.state.presentLongitude });
 
@@ -202,7 +211,7 @@ export default class Compass extends Component {
   };
 
   _direction = (degree) => {
-    // Direction: N, S, W, E, NE, NW, SE, SW.
+    // SET Direction letter: N, S, W, E, NE, NW, SE, SW.
     if (degree >= 22.5 && degree < 67.5) {
       return 'NE';
     }
