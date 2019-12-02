@@ -13,8 +13,6 @@ const {height, width} = Dimensions.get('window');
 
 const STORAGE_KEY = 'points';
 
-const demoHome = true;
-
 export default class Compass extends Component {
 
   constructor() {
@@ -46,20 +44,11 @@ export default class Compass extends Component {
       ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP);
       
       // get location
-      this._getLocationAsync();
-
-      //dataDemo
-      // if (demoHome) {
-      //   console.log("demo home");
-
-      //   let position = { 
-      //     direction: 'S',
-      //     datetime: new Date().getTime(),
-      //     lat: -32.4124124,
-      //     long: 50.00124010
-      //   }
-      // }
-
+      // this._getLocationAsync();
+      
+      // watch me location
+      this._watchLocation();
+      
      AsyncStorage.getItem(STORAGE_KEY)
       .then(req => JSON.parse(req))
       .then(array => { 
@@ -77,9 +66,11 @@ export default class Compass extends Component {
     
     }
   };
+
   _loadPoints = async () => {
     return await AsyncStorage.getItem(STORAGE_KEY);
   };
+
   componentDidMount() {
     this._toggle();
   };
@@ -87,6 +78,31 @@ export default class Compass extends Component {
   componentWillUnmount() {
     this._unsubscribe();
   };
+
+  _watchLocation(){
+    console.log("@_watchLocation");
+    
+    var _this=this;
+    
+    Location.watchPositionAsync({
+      enableHighAccuracy:true,
+      timeInterval: 5000
+    }, location => {
+            console.log("Watch Location 5seg");
+            console.log(location);
+
+            this.setState({ timestamp: location.timestamp });
+            this.setState({ presentLatitude: location.coords.latitude });
+            this.setState({ presentLongitude: location.coords.longitude });
+
+
+              if (
+                  this.state.lastLatitude != this.state.presentLatitude &&
+                  this.state.lastLongitude != this.state.presentLongitude) {
+                  this._savePosition()
+              }
+    });
+  }
 
   _getLocationAsync = async () => {
     // Permissions 
@@ -121,13 +137,7 @@ export default class Compass extends Component {
   _subscribe = async () => {
     // Direction should be calculated by comparing current and last latitude and longitude.
     this._subscription = Magnetometer.addListener((data) => {
-      if (
-        this.state.lastLatitude != this.state.presentLatitude &&
-        this.state.lastLongitude != this.state.presentLongitude) {
-        
         this.setState({magnetometer: this._angle(data)});
-        this._savePosition()
-      }
     });
       
   };
@@ -312,8 +322,12 @@ const styles = StyleSheet.create({
     padding: 5
   },
   coords:  {
+    borderWidth: 1,
+    borderRadius: 10,
+    margin: 5,
+    borderColor: '#FFFFFF',
     color: '#fff',
-    fontSize: height / 26,
+    fontSize: 12,
     padding: 10
   }
 });

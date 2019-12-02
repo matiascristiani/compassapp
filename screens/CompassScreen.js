@@ -12,11 +12,18 @@ export default function CompassScreen() {
 
 CompassScreen.navigationOptions = {
   title: 'Compass',
+  headerStyle: {
+        backgroundColor: '#393939',
+  },
+  headerTintColor: '#fff',
+  headerTitleStyle: {
+      fontWeight: 'bold',
+  }
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#393939',
   },
 });

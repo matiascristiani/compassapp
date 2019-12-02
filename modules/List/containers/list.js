@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
-import { Platform, View, Text, TextInput, FlatList, StyleSheet, TouchableHighlight, SafeAreaView, KeyboardAvoidingView } from 'react-native';
+import { Platform, Alert, View, Text, TextInput, FlatList, StyleSheet, TouchableHighlight, SafeAreaView, KeyboardAvoidingView } from 'react-native';
 import { Grid, Col, Row } from 'react-native-easy-grid';
-import { SearchBar } from "react-native-elements";
 
 // metodo-1-by-redux
 import {connect} from 'react-redux';
@@ -42,7 +41,11 @@ export default class List extends Component {
 
         if (array && array.length > 0) {
           console.log("success")
-          
+          array.forEach((item)=>{
+            let date = new Date(item.datetime);
+            let minutes = (date.getMinutes()<10? '0':'') + date.getMinutes();
+            item.datestring = date.getDate() +'/'+ (date.getMonth()+1) +'/'+ date.getFullYear() + ' - ' + date.getHours() +':'+minutes;
+          })
           this.setState({ 
               data: array,
               arrayholder: array,
@@ -56,28 +59,42 @@ export default class List extends Component {
        }).catch(error => {  console.log('error@_fechItems') });
   }
   
-  _onPress() {
-    console.log("@OnPress Touchable!")
+  _onPress(item) {
+    console.log("@OnPress")
+    
+    Alert.alert(
+      ('['+item.direction+'] Lat and Longitude'),
+      'LAT ('+item.lat+')\n LONG ('+item.long+').',
+      [
+        { text: 'Perfect!', onPress: () => console.log('pressed') },
+      ],
+      { cancelable: false }
+    );
+
+
   }
 
   _FlatListHeader = () => {
     return (         
         <Grid>
-         <Col size={40} style={styles.header}>
-           <Text style={styles.headerTextA}>Datetime</Text>
+
+          <Col size={10} style={styles.headerD}>
+           <Text style={styles.headerTextD}>DIR</Text>
+         </Col>
+
+         <Col size={40} style={styles.headerA}>
+           <Text style={styles.headerTextA}>DATE</Text>
          </Col>
          
-         <Col size={20} style={styles.header}>
-           <Text style={styles.headerTextA}>LAT</Text>
+         <Col size={25} style={styles.headerB}>
+           <Text style={styles.headerTextB}>LAT</Text>
          </Col>
 
-         <Col size={20} style={styles.header}>
-           <Text style={styles.headerTextA}>LONG</Text>
+         <Col size={25} style={styles.headerC}>
+           <Text style={styles.headerTextC}>LONG</Text>
          </Col>
 
-         <Col size={20} style={styles.header}>
-           <Text style={styles.headerTextB}>Direction</Text>
-         </Col>
+       
 
       </Grid>
     );
@@ -114,7 +131,7 @@ export default class List extends Component {
     
       <Grid style={styles.gridContainer}>
         
-        <Row size={10}>
+        <Row size={10} style={styles.searchContainer}>
           
           <TextInput
             style={styles.textInputStyle}
@@ -143,16 +160,26 @@ export default class List extends Component {
                       onPress={() => this._onPress(item)}
                       onShowUnderlay={separators.highlight}
                       onHideUnderlay={separators.unhighlight}>
-                      <View>
+                      <View style={styles.ViewList}>
                         <Grid>
-                            <Col>
-                              <Text style={styles.colView}>{item.datetime}</Text></Col>
-                            <Col>
-                              <Text style={styles.colView}>{item.lat}</Text></Col>
-                            <Col>
-                              <Text style={styles.colView}>{item.long}</Text></Col>
-                            <Col>
-                              <Text style={styles.colView}>{item.direction}</Text></Col>
+                            <Col size={10}>
+                              <Text>{item.direction}
+                              </Text></Col>
+
+                            <Col size={40}>
+                              <Text>{item.datestring}
+                              </Text></Col>
+
+                            <Col size={25}>
+                              <Text numberOfLines = { 1 } ellipsizeMode = 'tail'>
+                              {item.lat}
+                              </Text></Col>
+                              
+                            <Col size={25}>
+                              <Text numberOfLines = { 1 } ellipsizeMode = 'tail'>
+                              {item.long}
+                              </Text></Col>
+                            
                         </Grid>
                       </View>
                     </TouchableHighlight>
@@ -181,6 +208,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   
+  searchContainer: {
+    backgroundColor: '#DADADA',
+  },
+  
   showError: {
     alignItems: 'center',
     color: '#dadada',
@@ -192,17 +223,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
   },
   
-  listItem: {
-    padding: 5,
-  },
+ 
 
-  header: {
-      padding: 10, 
+  headerA: {
+      paddingTop: 5, 
+      paddingBottom: 5, 
+      textAlign: 'left',
       backgroundColor: '#393939', 
       color: '#FFFFFF'
   },
+  headerTextA: {fontSize: 14, paddingLeft: 5, color: '#FFFFFF', textAlign: 'left' },
 
-  headerTextA: {padding: 2, color: '#FFFFFF', textAlign: 'left' },
-  headerTextB: {padding: 2, color: '#FFFFFF', textAlign: 'center' },
+  headerB: {
+      paddingTop: 5, 
+      paddingBottom: 5, 
+      textAlign: 'left',
+      backgroundColor: '#393939', 
+      color: '#FFFFFF'
+  },
+  headerTextB: {fontSize: 14, paddingLeft: 5, color: '#FFFFFF', textAlign: 'left' },
+
+  headerC: {
+      paddingTop: 5, 
+      paddingBottom: 5, 
+      textAlign: 'left',
+      backgroundColor: '#393939', 
+      color: '#FFFFFF'
+  },
+  headerTextC: {fontSize: 14, paddingLeft: 5, color: '#FFFFFF', textAlign: 'left' },
+
+  headerD: {
+      paddingTop: 5, 
+      paddingBottom: 5, 
+      textAlign: 'center',
+      backgroundColor: '#393939', 
+      color: '#FFFFFF'
+  },
+  headerTextD: {fontSize: 14, color: '#FFFFFF', textAlign: 'center' },
+
+  
+  ViewList: {
+    padding: 10,
+  },
+
+  listItem: {
+  },
+
+ 
 });
 

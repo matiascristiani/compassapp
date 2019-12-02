@@ -28,13 +28,15 @@ export default function HomeScreen() {
             style={styles.welcomeImage}
           />
 
-          <TouchableOpacity onPress={this.handleLinkPress} >
+          <TouchableOpacity>
             <Text style={styles.getStartedText}>Welcome to me CompassApp!</Text>
           </TouchableOpacity>
 
           <MonoText>Cristiani Matias Ezequiel</MonoText>
 
-          <Text style={styles.linkText}> https://github.com/matiascristiani/compassapp </Text>
+          <Text 
+          onPress={() => WebBrowser.openBrowserAsync('https://github.com/matiascristiani/compassapp/')}
+          style={styles.linkText}> https://github.com/matiascristiani/compassapp </Text>
 
         </View>
         
@@ -46,9 +48,9 @@ export default function HomeScreen() {
 
           <MonoText>Where Am I Going</MonoText>
 
-          <Text onPress={this.handleLinkInstructionPress} style={styles.instrDescription}>View requeriments for project ? , click me! </Text>
-
-          <Text onPress={this.clearDataPress} style={styles.instrDescription}>Clear data of app ? , click me! </Text>
+          <Text 
+            onPress={() =>  WebBrowser.openBrowserAsync('https://docs.google.com/document/d/1qzJ07B59byG2g18kydN6CTc3nM2HEm_QZNnWCsJTGZk/edit?usp=sharing')}
+            style={styles.instrDescription}>View requeriments for project ? , click me! </Text>
 
         </View>
         
@@ -61,28 +63,6 @@ export default function HomeScreen() {
 HomeScreen.navigationOptions = {
   header: null,
 };
-
-function handleLinkPress() {
-  console.log("@handleLinkPress");
-
-  WebBrowser.openBrowserAsync(
-    'https://github.com/matiascristiani/compassapp/'
-  );
-}
-
-function handleLinkInstructionPress() {
-  console.log("@handleLinkInstructionPress");
-
-  WebBrowser.openBrowserAsync(
-    'https://docs.google.com/document/d/1qzJ07B59byG2g18kydN6CTc3nM2HEm_QZNnWCsJTGZk/edit?usp=sharing'
-  );
-}
-
-function clearDataPress() {
-  console.log("@clearDataPress");
-
-  AsyncStorage.clear()
-}
 
 const styles = StyleSheet.create({
   container: {
